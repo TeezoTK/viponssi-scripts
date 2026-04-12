@@ -1,5 +1,5 @@
 // ════════════════════════════════════════════
-// VIPONSSI — SIGNATURE TRANSITION SYSTEM v5
+// VIPONSSI — SIGNATURE TRANSITION SYSTEM v6
 // ════════════════════════════════════════════
 (function () {
 
@@ -9,23 +9,21 @@
     if (href.includes('looks'))     return 'looks';
     if (href.includes('contact'))   return 'contact';
     if (href.includes('about'))     return 'about';
-    if (href.includes('home') || href === '/') {
-      return href.includes('#camera-menu') ? 'home' : 'startup';
-    }
+    if (href.includes('home') || href === '/') return 'home';
     return 'other';
   }
 
   function getCurrentKey() {
-  const p = window.location.pathname;
-  if (p.includes('portfolio')) return 'portfolio';
-  if (p.includes('looks'))     return 'looks';
-  if (p.includes('contact'))   return 'contact';
-  if (p.includes('about'))     return 'about';
-  if (p.includes('home') || p === '/') {
-    return sessionStorage.getItem('vip-skip-to-menu') === '1' ? 'home' : 'startup';
+    const p = window.location.pathname;
+    if (p.includes('portfolio')) return 'portfolio';
+    if (p.includes('looks'))     return 'looks';
+    if (p.includes('contact'))   return 'contact';
+    if (p.includes('about'))     return 'about';
+    // Home page — ALWAYS startup
+    // Home body script handles all skip logic independently
+    if (p.includes('home') || p === '/') return 'startup';
+    return 'other';
   }
-  return 'other';
-}
 
   const style = document.createElement('style');
   style.textContent = `
@@ -60,9 +58,9 @@
 
   const currentKey = getCurrentKey();
   const isStartup  = currentKey === 'startup';
-  const isHome     = currentKey === 'home';
   const isOther    = currentKey === 'other';
 
+  // Black cover — z-index -1 and opacity 0 on home/startup so it never covers anything
   const blackCover = document.createElement('div');
   blackCover.id = 'vip-transition-cover';
   blackCover.style.cssText = `
@@ -92,6 +90,9 @@
   document.body.appendChild(exitBlack);
   document.body.appendChild(entryOverlay);
 
+  // ════════════════════════════════════════════
+  // EXIT — GLITCH (all pages)
+  // ════════════════════════════════════════════
   function fireGlitchLines(count) {
     glitchOverlay.style.opacity = '1';
     for (let i = 0; i < count; i++) {
@@ -153,15 +154,23 @@
     rgbFlash();
     setTimeout(() => { fireScreenTear(); fireGlitchLines(3); }, 150);
     setTimeout(() => { glitchPageElements(); fireGlitchLines(6); rgbFlash(); fireScreenTear(); }, 280);
-    setTimeout(() => { exitBlack.style.transition='opacity 0.12s ease'; exitBlack.style.opacity='1'; }, 420);
     setTimeout(() => {
-  if (href.includes('home') || href === '/') {
-    sessionStorage.setItem('vip-skip-to-menu', '1');
-  }
-  window.location.href = href.split('#')[0];
-}, 560);
+      exitBlack.style.transition = 'opacity 0.12s ease';
+      exitBlack.style.opacity    = '1';
+    }, 420);
+    setTimeout(() => {
+      // Set sessionStorage flag before navigating — home script reads this on load
+      const destKey = getDestKey(href);
+      if (destKey === 'home') {
+        sessionStorage.setItem('vip-skip-to-menu', '1');
+      }
+      window.location.href = href.split('#')[0];
+    }, 560);
   }
 
+  // ════════════════════════════════════════════
+  // ENTRY — PORTFOLIO — Film strip
+  // ════════════════════════════════════════════
   function entryPortfolio() {
     const perfCount = 12;
     for (let i = 0; i < perfCount; i++) {
@@ -185,6 +194,9 @@
     });
   }
 
+  // ════════════════════════════════════════════
+  // ENTRY — LOOKS — Aperture iris
+  // ════════════════════════════════════════════
   function entryLooks() {
     const aperture = document.createElement('div');
     aperture.style.cssText = `position:absolute;top:50%;left:50%;width:100vmax;height:100vmax;transform:translate(-50%,-50%);pointer-events:none;`;
@@ -215,6 +227,9 @@
     });
   }
 
+  // ════════════════════════════════════════════
+  // ENTRY — CONTACT — Signal reticle
+  // ════════════════════════════════════════════
   function entryContact() {
     const col = 'rgba(134,231,184,';
     const reticle = document.createElement('div');
@@ -243,6 +258,9 @@
     });
   }
 
+  // ════════════════════════════════════════════
+  // ENTRY — ABOUT — Polaroid develop
+  // ════════════════════════════════════════════
   function entryAbout() {
     const whiteCover = document.createElement('div');
     whiteCover.style.cssText = `position:absolute;inset:0;background:#fff;opacity:1;transition:opacity 1.2s ease;`;
@@ -265,36 +283,12 @@
     });
   }
 
-  function entryMenu() {
-    window.addEventListener('load', () => {
-      blackCover.style.transition    = 'none';
-      blackCover.style.opacity       = '0';
-      blackCover.style.zIndex        = '-1';
-      blackCover.style.pointerEvents = 'none';
-      exitBlack.style.pointerEvents  = 'none';
-      setTimeout(() => {
-        const sigil = document.querySelector('.camera-home__brand-sigil-2');
-        if (!sigil) return;
-        const originalOpacity    = sigil.style.opacity || '';
-        const originalFilter     = sigil.style.filter  || '';
-        const originalColor      = sigil.style.color   || '';
-        sigil.style.transition   = 'opacity 0.5s ease, filter 0.5s ease, color 0.5s ease';
-        sigil.style.opacity      = '1';
-        sigil.style.color        = 'rgba(245,232,188,0.95)';
-        sigil.style.filter       = 'drop-shadow(0 0 2rem rgba(245,232,188,0.6)) drop-shadow(0 0 5rem rgba(245,232,188,0.3))';
-        sigil.style.animation    = 'vip-sigil-glow-pulse 1.2s ease-in-out';
-        setTimeout(() => {
-          sigil.style.transition = 'opacity 1s ease, filter 1s ease, color 1s ease';
-          sigil.style.opacity    = originalOpacity || '0.07';
-          sigil.style.color      = originalColor   || 'rgba(244,227,194,0.07)';
-          sigil.style.filter     = originalFilter  || '';
-          sigil.style.animation  = 'vip-sigil-drift 18s ease-in-out infinite';
-        }, 1400);
-      }, 600);
-    });
-  }
-
+  // ════════════════════════════════════════════
+  // ENTRY ROUTER
+  // ════════════════════════════════════════════
   function entrySequence() {
+    // Startup/home — always hands off completely
+    // Home body script owns everything on the home page
     if (isStartup) {
       window.addEventListener('load', () => {
         blackCover.style.transition    = 'none';
@@ -305,6 +299,7 @@
       });
       return;
     }
+
     if (isOther) {
       window.addEventListener('load', () => {
         blackCover.style.transition    = 'none';
@@ -314,21 +309,28 @@
       });
       return;
     }
+
     switch (currentKey) {
       case 'portfolio': entryPortfolio(); break;
       case 'looks':     entryLooks();     break;
       case 'contact':   entryContact();   break;
       case 'about':     entryAbout();     break;
-      case 'home':      entryMenu();      break;
     }
   }
 
+  // ── LINK INTERCEPT
   document.addEventListener('click', e => {
     const link = e.target.closest('a');
     if (!link) return;
     const href = link.getAttribute('href');
     if (!href) return;
-    if (href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto')||href.startsWith('tel')||href==='#') return;
+    if (
+      href.startsWith('http') ||
+      href.startsWith('//') ||
+      href.startsWith('mailto') ||
+      href.startsWith('tel') ||
+      href === '#'
+    ) return;
     e.preventDefault();
     exitTransition(href);
   });
