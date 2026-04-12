@@ -16,17 +16,16 @@
   }
 
   function getCurrentKey() {
-    const p = window.location.pathname;
-    const h = window.location.hash;
-    if (p.includes('portfolio')) return 'portfolio';
-    if (p.includes('looks'))     return 'looks';
-    if (p.includes('contact'))   return 'contact';
-    if (p.includes('about'))     return 'about';
-    if (p.includes('home') || p === '/') {
-      return h.includes('camera-menu') ? 'home' : 'startup';
-    }
-    return 'other';
+  const p = window.location.pathname;
+  if (p.includes('portfolio')) return 'portfolio';
+  if (p.includes('looks'))     return 'looks';
+  if (p.includes('contact'))   return 'contact';
+  if (p.includes('about'))     return 'about';
+  if (p.includes('home') || p === '/') {
+    return sessionStorage.getItem('vip-skip-to-menu') === '1' ? 'home' : 'startup';
   }
+  return 'other';
+}
 
   const style = document.createElement('style');
   style.textContent = `
@@ -155,7 +154,12 @@
     setTimeout(() => { fireScreenTear(); fireGlitchLines(3); }, 150);
     setTimeout(() => { glitchPageElements(); fireGlitchLines(6); rgbFlash(); fireScreenTear(); }, 280);
     setTimeout(() => { exitBlack.style.transition='opacity 0.12s ease'; exitBlack.style.opacity='1'; }, 420);
-    setTimeout(() => { window.location.href = href; }, 560);
+    setTimeout(() => {
+  if (href.includes('home') || href === '/') {
+    sessionStorage.setItem('vip-skip-to-menu', '1');
+  }
+  window.location.href = href.split('#')[0];
+}, 560);
   }
 
   function entryPortfolio() {
