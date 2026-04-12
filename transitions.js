@@ -19,8 +19,6 @@
     if (p.includes('looks'))     return 'looks';
     if (p.includes('contact'))   return 'contact';
     if (p.includes('about'))     return 'about';
-    // Home page — ALWAYS startup
-    // Home body script handles all skip logic independently
     if (p.includes('home') || p === '/') return 'startup';
     return 'other';
   }
@@ -60,7 +58,6 @@
   const isStartup  = currentKey === 'startup';
   const isOther    = currentKey === 'other';
 
-  // Black cover — z-index -1 and opacity 0 on home/startup so it never covers anything
   const blackCover = document.createElement('div');
   blackCover.id = 'vip-transition-cover';
   blackCover.style.cssText = `
@@ -90,9 +87,6 @@
   document.body.appendChild(exitBlack);
   document.body.appendChild(entryOverlay);
 
-  // ════════════════════════════════════════════
-  // EXIT — GLITCH (all pages)
-  // ════════════════════════════════════════════
   function fireGlitchLines(count) {
     glitchOverlay.style.opacity = '1';
     for (let i = 0; i < count; i++) {
@@ -128,7 +122,7 @@
       'h1,h2,h3,.camera-home__menu-title-2,.camera-home__card-title-2,' +
       '.about-editorial__title,.portfolio-feature__title,' +
       '.looks-sequence__title,.contact-editorial__title,' +
-      '.camera-home__brand-sigil-2'
+      '.camera-home__brand-sigil'
     );
     targets.forEach((el, i) => {
       setTimeout(() => {
@@ -159,18 +153,13 @@
       exitBlack.style.opacity    = '1';
     }, 420);
     setTimeout(() => {
-      // Set sessionStorage flag before navigating — home script reads this on load
-      const destKey = getDestKey(href);
-      if (destKey === 'home') {
+      if (getDestKey(href) === 'home') {
         sessionStorage.setItem('vip-skip-to-menu', '1');
       }
       window.location.href = href.split('#')[0];
     }, 560);
   }
 
-  // ════════════════════════════════════════════
-  // ENTRY — PORTFOLIO — Film strip
-  // ════════════════════════════════════════════
   function entryPortfolio() {
     const perfCount = 12;
     for (let i = 0; i < perfCount; i++) {
@@ -194,9 +183,6 @@
     });
   }
 
-  // ════════════════════════════════════════════
-  // ENTRY — LOOKS — Aperture iris
-  // ════════════════════════════════════════════
   function entryLooks() {
     const aperture = document.createElement('div');
     aperture.style.cssText = `position:absolute;top:50%;left:50%;width:100vmax;height:100vmax;transform:translate(-50%,-50%);pointer-events:none;`;
@@ -227,9 +213,6 @@
     });
   }
 
-  // ════════════════════════════════════════════
-  // ENTRY — CONTACT — Signal reticle
-  // ════════════════════════════════════════════
   function entryContact() {
     const col = 'rgba(134,231,184,';
     const reticle = document.createElement('div');
@@ -258,9 +241,6 @@
     });
   }
 
-  // ════════════════════════════════════════════
-  // ENTRY — ABOUT — Polaroid develop
-  // ════════════════════════════════════════════
   function entryAbout() {
     const whiteCover = document.createElement('div');
     whiteCover.style.cssText = `position:absolute;inset:0;background:#fff;opacity:1;transition:opacity 1.2s ease;`;
@@ -283,12 +263,7 @@
     });
   }
 
-  // ════════════════════════════════════════════
-  // ENTRY ROUTER
-  // ════════════════════════════════════════════
   function entrySequence() {
-    // Startup/home — always hands off completely
-    // Home body script owns everything on the home page
     if (isStartup) {
       window.addEventListener('load', () => {
         blackCover.style.transition    = 'none';
@@ -299,7 +274,6 @@
       });
       return;
     }
-
     if (isOther) {
       window.addEventListener('load', () => {
         blackCover.style.transition    = 'none';
@@ -309,7 +283,6 @@
       });
       return;
     }
-
     switch (currentKey) {
       case 'portfolio': entryPortfolio(); break;
       case 'looks':     entryLooks();     break;
@@ -318,19 +291,12 @@
     }
   }
 
-  // ── LINK INTERCEPT
   document.addEventListener('click', e => {
     const link = e.target.closest('a');
     if (!link) return;
     const href = link.getAttribute('href');
     if (!href) return;
-    if (
-      href.startsWith('http') ||
-      href.startsWith('//') ||
-      href.startsWith('mailto') ||
-      href.startsWith('tel') ||
-      href === '#'
-    ) return;
+    if (href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto')||href.startsWith('tel')||href==='#') return;
     e.preventDefault();
     exitTransition(href);
   });
