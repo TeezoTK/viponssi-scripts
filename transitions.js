@@ -264,16 +264,19 @@
   }
 
   function entrySequence() {
-    if (isStartup) {
-      window.addEventListener('load', () => {
-        blackCover.style.transition    = 'none';
-        blackCover.style.opacity       = '0';
-        blackCover.style.zIndex        = '-1';
-        blackCover.style.pointerEvents = 'none';
-        exitBlack.style.pointerEvents  = 'none';
-      });
-      return;
-    }
+   if (isStartup) {
+  window.addEventListener('load', () => {
+    blackCover.style.transition    = 'none';
+    blackCover.style.opacity       = '0';
+    blackCover.style.zIndex        = '-1';
+    blackCover.style.pointerEvents = 'none';
+    // Clear exitBlack — it persists from previous page exit animation
+    exitBlack.style.opacity        = '0';
+    exitBlack.style.pointerEvents  = 'none';
+    exitBlack.style.transition     = 'none';
+  });
+  return;
+}
     if (isOther) {
       window.addEventListener('load', () => {
         blackCover.style.transition    = 'none';
