@@ -299,7 +299,7 @@
     if (!link) return;
     const href = link.getAttribute('href');
     if (!href) return;
-    if (href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto')||href.startsWith('tel')||href==='#') return;
+    if (href.startsWith('http')||href.startsWith('//')||href.startsWith('mailto')||href.startsWith('tel')||href==='#'||href.startsWith('#')) return;
     e.preventDefault();
     exitTransition(href);
   });
